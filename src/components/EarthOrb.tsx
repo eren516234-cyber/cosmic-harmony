@@ -5,7 +5,7 @@ import { usePlayer } from "@/lib/player";
 import { Play } from "lucide-react";
 
 export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
-  const items = albums.slice(0, 26);
+  const items = albums.slice(0, 48);
   const navigate = useNavigate();
   const { play, quality } = usePlayer();
   const [rot, setRot] = useState({ x: -12, y: 0 });
