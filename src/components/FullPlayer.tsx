@@ -16,6 +16,7 @@ export function FullPlayer() {
   const [loadingL, setLoadingL] = useState(false);
   const { liked, toggle: toggleLike } = useLike(current?.id);
   const [pulse, setPulse] = useState(0);
+  const [showPlaylistPick, setShowPlaylistPick] = useState(false);
   const [mode, setMode] = useState<LyricsMode>(() => {
     if (typeof window === "undefined") return "ios";
     return (localStorage.getItem(MODE_KEY) as LyricsMode) || "ios";
