@@ -199,7 +199,11 @@ function IOSLines({ synced, active, onSeek }: { synced: LineProps["synced"]; act
             className={`cursor-pointer px-2 font-display text-[26px] leading-snug font-bold transition-all duration-500 ${
               i === active ? "scale-[1.05] text-white" : "text-white/55"
             }`}
-            style={{ filter: `blur(${blur}px)`, willChange: "transform, opacity" }}
+            style={{
+              filter: `blur(${blur}px)`,
+              willChange: "transform, opacity",
+              textShadow: i === active ? "0 0 22px rgba(255,255,255,0.65), 0 0 44px rgba(255,255,255,0.35)" : "none",
+            }}
           >
             {l.text || "♪"}
           </p>
