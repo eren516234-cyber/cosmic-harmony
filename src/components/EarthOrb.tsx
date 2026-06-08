@@ -46,16 +46,22 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
   }
 
   return (
-    <div className="relative mx-auto h-[360px] w-full max-w-[380px] select-none">
-      {/* Glow under orb */}
+    <div className="relative mx-auto h-[420px] w-full max-w-[420px] select-none overflow-hidden rounded-3xl" style={{ background: "radial-gradient(ellipse at center, #06070d 0%, #000 70%)" }}>
+      {/* Starfield */}
+      <div className="pointer-events-none absolute inset-0" style={{
+        backgroundImage:
+          "radial-gradient(1px 1px at 20% 30%, #fff, transparent 60%), radial-gradient(1px 1px at 70% 80%, #fff, transparent 60%), radial-gradient(1.2px 1.2px at 40% 65%, #fff, transparent 60%), radial-gradient(1px 1px at 85% 20%, #fff, transparent 60%), radial-gradient(0.8px 0.8px at 10% 75%, #fff, transparent 60%), radial-gradient(1px 1px at 55% 12%, #fff, transparent 60%), radial-gradient(0.8px 0.8px at 33% 88%, #fff, transparent 60%), radial-gradient(1.4px 1.4px at 90% 55%, #fff, transparent 60%)",
+        opacity: 0.65,
+      }} />
+      {/* Atmospheric rim glow */}
       <div
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          width: 320,
-          height: 320,
-          background:
-            "radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent-hex) 55%, transparent), transparent 65%)",
-          filter: "blur(40px)",
+          width: 340,
+          height: 340,
+          boxShadow: "0 0 80px 12px rgba(120,180,255,0.35), 0 0 200px 40px rgba(80,140,255,0.18)",
+          background: "radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent-hex) 28%, transparent), transparent 65%)",
+          filter: "blur(20px)",
         }}
       />
       <div
