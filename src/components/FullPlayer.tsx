@@ -92,12 +92,12 @@ export function FullPlayer() {
         {/* Lyrics in compact card */}
         {showLyrics && (
           <div className="mt-3 flex flex-1 flex-col overflow-hidden">
-            <div className="mx-auto mb-2 flex gap-1 rounded-full bg-secondary/70 p-1 backdrop-blur">
+            <div className="mx-auto mb-2 flex max-w-full gap-1 overflow-x-auto rounded-full bg-secondary/70 p-1 backdrop-blur scrollbar-none">
               {MODES.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => setMode(m.id)}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
+                  className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
                     mode === m.id ? "bg-accent text-accent-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
