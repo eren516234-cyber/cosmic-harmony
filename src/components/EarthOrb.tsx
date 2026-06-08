@@ -34,7 +34,7 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
   }, []);
 
   if (!items.length) return null;
-  const R = 130;
+  const R = 150;
 
   async function quickPlay(a: SaavnAlbum) {
     let songs = a.songs;
