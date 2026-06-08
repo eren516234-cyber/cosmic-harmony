@@ -3,15 +3,10 @@ import { useEffect, useState } from "react";
 import { usePlayer, formatTime } from "@/lib/player";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
-import { LyricsView, type LyricsMode } from "./LyricsView";
+import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
 
 const MODE_KEY = "yvl.lyrics-mode";
-const MODES: { id: LyricsMode; label: string }[] = [
-  { id: "ios", label: "iOS" },
-  { id: "word", label: "Word" },
-  { id: "karaoke", label: "Karaoke" },
-  { id: "glow", label: "Glow" },
-];
+const MODES = LYRICS_MODES;
 
 export function FullPlayer() {
   const { current, expanded, expand, isPlaying, toggle, next, prev, position, duration, seek } = usePlayer();
