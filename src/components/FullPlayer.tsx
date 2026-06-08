@@ -122,29 +122,45 @@ export function FullPlayer() {
         )}
 
         {!showLyrics && (
-          <div className="mt-6 flex items-start justify-between gap-3">
+          <div className="mt-6 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h2 className="truncate font-display text-3xl leading-tight">{current.title}</h2>
               <p className="truncate text-base text-muted-foreground">{current.artist}</p>
             </div>
-            <button
-              onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
-              className="grid size-12 shrink-0 place-items-center rounded-full bg-secondary/80 backdrop-blur"
-              aria-label={liked ? "Unlike" : "Like"}
-            >
-              <Heart
-                key={pulse}
-                className={`size-6 ${liked ? "fill-accent text-accent" : "text-foreground"}`}
-                style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
-              />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <ActionButton
+                ariaLabel={liked ? "Unlike" : "Like"}
+                onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
+              >
+                <Heart
+                  key={pulse}
+                  className={`size-5 ${liked ? "fill-accent text-accent" : "text-foreground"}`}
+                  style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
+                />
+              </ActionButton>
+              <ActionButton ariaLabel="Add to playlist" onClick={() => setShowPlaylistPick(true)}>
+                <Plus className="size-5" />
+              </ActionButton>
+              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} />
+            </div>
           </div>
         )}
 
         {showLyrics && (
-          <div className="mt-3 text-center">
-            <div className="truncate font-display text-lg leading-tight">{current.title}</div>
-            <div className="truncate text-xs text-muted-foreground">{current.artist}</div>
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1 text-center">
+              <div className="truncate font-display text-lg leading-tight">{current.title}</div>
+              <div className="truncate text-xs text-muted-foreground">{current.artist}</div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <ActionButton ariaLabel="Like" onClick={() => { toggleLike(); setPulse((p) => p + 1); }} size="sm">
+                <Heart className={`size-4 ${liked ? "fill-accent text-accent" : ""}`} />
+              </ActionButton>
+              <ActionButton ariaLabel="Playlist" onClick={() => setShowPlaylistPick(true)} size="sm">
+                <Plus className="size-4" />
+              </ActionButton>
+              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} size="sm" />
+            </div>
           </div>
         )}
 
