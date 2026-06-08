@@ -230,7 +230,7 @@ function WordLines({ synced, active, progress, onSeek, accent }: LineProps) {
                   key={j}
                   className="mr-2 inline-block transition-all duration-200"
                   style={{
-                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.22)",
+                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.55)",
                     textShadow: lit && i === active ? `0 0 18px ${accent ?? "rgba(255,255,255,0.6)"}` : "none",
                     transform: lit && i === active ? "translateY(-2px)" : "none",
                   }}
@@ -269,7 +269,7 @@ function KaraokeLines({ synced, active, progress, onSeek, accent }: LineProps) {
                   key={j}
                   className="inline-block transition-all duration-150"
                   style={{
-                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.18)",
+                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.5)",
                     textShadow: lit ? `0 0 12px ${accent ?? "#fff"}, 0 0 24px ${accent ?? "#fff"}` : "none",
                     transform: justLit ? "translateY(-4px) scale(1.18)" : "none",
                   }}
@@ -383,7 +383,7 @@ function CinematicLines({ synced, active, onSeek }: LineProps) {
             onClick={() => onSeek?.(l.time)}
             className="cursor-pointer px-4 text-center font-display text-[26px] leading-snug font-bold transition-all duration-700"
             style={{
-              color: isActive ? "#fff" : "rgba(255,255,255,0.05)",
+              color: isActive ? "#fff" : "rgba(255,255,255,0.35)",
               filter: isActive ? "none" : "blur(2px)",
               textShadow: isActive ? "0 0 30px rgba(255,255,255,0.4)" : "none",
               transform: isActive ? "scale(1.06)" : "scale(1)",
@@ -414,7 +414,7 @@ function FloatLines({ synced, active, onSeek, accent }: LineProps) {
             onClick={() => onSeek?.(l.time)}
             className="cursor-pointer px-2 font-display text-[26px] leading-snug font-bold transition-colors duration-500"
             style={{
-              color: isActive ? "#fff" : "rgba(255,255,255,0.22)",
+              color: isActive ? "#fff" : "rgba(255,255,255,0.55)",
               textShadow: isActive ? `0 0 22px ${accent ?? "rgba(255,255,255,0.5)"}` : "none",
               transform: `translate(${drift}px, ${float}px) scale(${isActive ? 1.06 : 1 - Math.min(Math.abs(dist) * 0.04, 0.2)})`,
               opacity: isActive ? 1 : Math.max(0.18, 1 - Math.abs(dist) * 0.18),
