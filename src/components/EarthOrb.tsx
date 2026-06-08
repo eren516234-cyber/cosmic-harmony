@@ -92,14 +92,16 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
             transition: dragging.current ? "none" : "transform 60ms linear",
           }}
         >
-          {/* Sphere wireframe */}
+          {/* Sphere — earth-blue core with rim light */}
           <div
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{
               width: R * 2,
               height: R * 2,
-              border: "1px solid color-mix(in srgb, var(--accent-hex) 18%, transparent)",
-              boxShadow: "inset 0 0 80px color-mix(in srgb, var(--accent-hex) 14%, transparent)",
+              background:
+                "radial-gradient(circle at 30% 28%, #1a3a6e 0%, #0a1a3a 55%, #02060f 100%)",
+              boxShadow:
+                "inset -20px -30px 80px rgba(0,0,0,0.85), inset 18px 22px 60px rgba(120,180,255,0.18), 0 0 60px rgba(80,140,255,0.22)",
               transform: "translateZ(-1px)",
             }}
           />
@@ -113,6 +115,8 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
             const y = Math.sin(phi) * Math.sin(theta) * R - R * 0.05;
             const z = Math.cos(phi) * R;
             const isHover = hovered === i;
+            // Hide the back-facing albums for crisper silhouette
+            const front = z > -R * 0.15;
             return (
               <button
                 key={a.id}
@@ -127,17 +131,27 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
                 style={{
                   transform: `translate(-50%,-50%) translate3d(${x}px,${y}px,${z}px) rotateY(${-rot.y}deg) rotateX(${-rot.x}deg)`,
                   transformStyle: "preserve-3d",
+                  opacity: front ? Math.min(1, 0.55 + (z + R) / (2 * R) * 0.7) : 0,
+                  pointerEvents: front ? "auto" : "none",
+                  filter: isHover ? "none" : `brightness(${0.7 + ((z + R) / (2 * R)) * 0.5})`,
+                  transition: "filter 200ms linear",
                 }}
                 aria-label={a.name}
               >
                 <div
-                  className={`relative overflow-hidden rounded-xl bg-secondary shadow-glow transition-all ${
-                    isHover ? "ring-2 ring-accent" : ""
+                  className={`relative overflow-hidden rounded-md bg-secondary transition-all ${
+                    isHover ? "ring-2 ring-white shadow-glow scale-150 z-10" : ""
                   }`}
-                  style={{ width: 48, height: 48 }}
+                  style={{
+                    width: 42,
+                    height: 42,
+                    boxShadow: isHover
+                      ? `0 0 24px color-mix(in srgb, var(--accent-hex) 80%, transparent)`
+                      : `0 0 6px rgba(120,180,255,0.18)`,
+                  }}
                 >
                   {bestImage(a.image) && (
-                    <img src={bestImage(a.image)} alt="" className="size-full object-cover" />
+                    <img src={bestImage(a.image)} alt="" className="size-full object-cover" loading="lazy" />
                   )}
                   <span
                     onClick={(e) => { e.stopPropagation(); void quickPlay(a); }}
