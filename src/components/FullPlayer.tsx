@@ -290,7 +290,6 @@ function PlaylistPicker({
 
   function create() {
     if (!name.trim()) return;
-    const { createPlaylist } = require("@/lib/playlists") as typeof import("@/lib/playlists");
     const pl = createPlaylist(name);
     addToPlaylist(pl.id, track);
     onClose();
