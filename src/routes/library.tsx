@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Heart, ListMusic, Clock } from "lucide-react";
+import { Heart, ListMusic, Clock, Trash2, Play } from "lucide-react";
 import { useRouteAccent } from "@/lib/theme";
+import { getPlaylists, deletePlaylist, type Playlist } from "@/lib/playlists";
+import { usePlayer } from "@/lib/player";
+import { Saavn, toTrack } from "@/lib/saavn";
 
 export const Route = createFileRoute("/library")({
   head: () => ({ meta: [{ title: "YVL — Library" }] }),
@@ -14,21 +17,87 @@ function LibraryPage() {
   useRouteAccent("library");
   const [liked, setLiked] = useState<LikedTrack[]>([]);
   const [recents, setRecents] = useState<string[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const { play, quality } = usePlayer();
 
-  useEffect(() => {
+  function refresh() {
     try { setLiked(JSON.parse(localStorage.getItem("yvl.liked") ?? "[]")); } catch {}
     try { setRecents(JSON.parse(localStorage.getItem("yvl.recent.searches") ?? "[]")); } catch {}
+    setPlaylists(getPlaylists());
+  }
+
+  useEffect(() => {
+    refresh();
+    const onChange = () => refresh();
+    window.addEventListener("yvl:playlists-changed", onChange);
+    window.addEventListener("storage", onChange);
+    return () => {
+      window.removeEventListener("yvl:playlists-changed", onChange);
+      window.removeEventListener("storage", onChange);
+    };
   }, []);
+
+  async function playPlaylist(pl: Playlist) {
+    if (!pl.tracks.length) return;
+    const tracks = await Promise.all(
+      pl.tracks.map(async (t) => {
+        try {
+          const s = await Saavn.song(t.id);
+          return toTrack(s, quality);
+        } catch {
+          return { id: t.id, title: t.title, artist: t.artist, cover: t.cover, duration: 0 } as any;
+        }
+      })
+    );
+    await play(tracks, 0);
+  }
 
   return (
     <div className="space-y-8">
       <h1 className="font-display text-5xl">Library</h1>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Card icon={<Heart className="size-5" />} title="Liked songs" subtitle={`${liked.length} tracks`} to="/" />
-        <Card icon={<ListMusic className="size-5" />} title="Playlists" subtitle="Coming soon" to="/" />
-        <Card icon={<Clock className="size-5" />} title="Recent searches" subtitle={`${recents.length} queries`} to="/search" />
+      <div className="grid grid-cols-3 gap-3">
+        <Card icon={<Heart className="size-5" />} title="Liked" subtitle={`${liked.length}`} to="/library" />
+        <Card icon={<ListMusic className="size-5" />} title="Playlists" subtitle={`${playlists.length}`} to="/library" />
+        <Card icon={<Clock className="size-5" />} title="Recent" subtitle={`${recents.length}`} to="/search" />
       </div>
+
+      <section>
+        <h2 className="font-display text-2xl">Playlists</h2>
+        {playlists.length === 0 ? (
+          <p className="mt-3 rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
+            Tap the <strong>+</strong> on any playing track to start a playlist.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {playlists.map((pl) => (
+              <div key={pl.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                <div className="grid size-12 place-items-center rounded-xl bg-accent text-accent-foreground">
+                  <ListMusic className="size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold">{pl.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">{pl.tracks.length} tracks</div>
+                </div>
+                <button
+                  onClick={() => void playPlaylist(pl)}
+                  className="grid size-10 place-items-center rounded-full bg-accent text-accent-foreground"
+                  aria-label="Play playlist"
+                >
+                  <Play className="size-4 translate-x-[1px]" />
+                </button>
+                <button
+                  onClick={() => { if (confirm(`Delete "${pl.name}"?`)) { deletePlaylist(pl.id); refresh(); } }}
+                  className="grid size-10 place-items-center rounded-full bg-secondary"
+                  aria-label="Delete playlist"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section>
         <h2 className="font-display text-2xl">Liked</h2>

@@ -5,7 +5,7 @@ import { usePlayer } from "@/lib/player";
 import { Play } from "lucide-react";
 
 export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
-  const items = albums.slice(0, 48);
+  const items = albums.slice(0, 90);
   const navigate = useNavigate();
   const { play, quality } = usePlayer();
   const [rot, setRot] = useState({ x: -12, y: 0 });
@@ -34,7 +34,7 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
   }, []);
 
   if (!items.length) return null;
-  const R = 150;
+  const R = 170;
 
   async function quickPlay(a: SaavnAlbum) {
     let songs = a.songs;
@@ -46,7 +46,7 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
   }
 
   return (
-    <div className="relative mx-auto h-[420px] w-full max-w-[420px] select-none overflow-hidden rounded-3xl" style={{ background: "radial-gradient(ellipse at center, #06070d 0%, #000 70%)" }}>
+    <div className="relative mx-auto h-[480px] w-full max-w-[480px] select-none overflow-hidden rounded-3xl" style={{ background: "radial-gradient(ellipse at center, #06070d 0%, #000 70%)" }}>
       {/* Starfield */}
       <div className="pointer-events-none absolute inset-0" style={{
         backgroundImage:
@@ -143,8 +143,8 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
                     isHover ? "ring-2 ring-white shadow-glow scale-150 z-10" : ""
                   }`}
                   style={{
-                    width: 42,
-                    height: 42,
+                    width: 38,
+                    height: 38,
                     boxShadow: isHover
                       ? `0 0 24px color-mix(in srgb, var(--accent-hex) 80%, transparent)`
                       : `0 0 6px rgba(120,180,255,0.18)`,

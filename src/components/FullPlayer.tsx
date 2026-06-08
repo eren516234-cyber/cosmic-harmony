@@ -1,9 +1,10 @@
-import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart } from "lucide-react";
+import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart, Download, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlayer, formatTime } from "@/lib/player";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
+import { addToPlaylist, createPlaylist, getPlaylists } from "@/lib/playlists";
 
 const MODE_KEY = "yvl.lyrics-mode";
 const MODES = LYRICS_MODES;
@@ -15,6 +16,7 @@ export function FullPlayer() {
   const [loadingL, setLoadingL] = useState(false);
   const { liked, toggle: toggleLike } = useLike(current?.id);
   const [pulse, setPulse] = useState(0);
+  const [showPlaylistPick, setShowPlaylistPick] = useState(false);
   const [mode, setMode] = useState<LyricsMode>(() => {
     if (typeof window === "undefined") return "ios";
     return (localStorage.getItem(MODE_KEY) as LyricsMode) || "ios";
@@ -70,24 +72,26 @@ export function FullPlayer() {
           </button>
         </header>
 
-        {/* Album art — always visible (shrinks when lyrics on) */}
-        <div className={`relative mx-auto mt-6 transition-all duration-500 ${showLyrics ? "w-[180px]" : "w-full max-w-[320px]"}`}>
-          <div className="aspect-square">
-            <div
-              className="relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
-              style={{ animation: isPlaying ? "spin-slow 22s linear infinite" : "none" }}
-            >
-              {current.cover && (
-                <img src={current.cover} alt="" className="size-full object-cover" />
-              )}
+        {/* Album art — only when lyrics are OFF (lyrics get full real estate) */}
+        {!showLyrics && (
+          <div className="relative mx-auto mt-6 w-full max-w-[320px]">
+            <div className="aspect-square">
               <div
-                className="pointer-events-none absolute inset-0 rounded-full"
-                style={{ background: "repeating-radial-gradient(circle at center, rgba(0,0,0,0.18) 0 1px, transparent 1px 6px)" }}
-              />
-              <div className={`absolute left-1/2 top-1/2 ${showLyrics ? "size-7" : "size-12"} -translate-x-1/2 -translate-y-1/2 rounded-full bg-background ring-4 ring-accent transition-all`} />
+                className="relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
+                style={{ animation: isPlaying ? "spin-slow 22s linear infinite" : "none" }}
+              >
+                {current.cover && (
+                  <img src={current.cover} alt="" className="size-full object-cover" />
+                )}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-full"
+                  style={{ background: "repeating-radial-gradient(circle at center, rgba(0,0,0,0.18) 0 1px, transparent 1px 6px)" }}
+                />
+                <div className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background ring-4 ring-accent" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Lyrics in compact card */}
         {showLyrics && (
@@ -119,29 +123,45 @@ export function FullPlayer() {
         )}
 
         {!showLyrics && (
-          <div className="mt-6 flex items-start justify-between gap-3">
+          <div className="mt-6 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h2 className="truncate font-display text-3xl leading-tight">{current.title}</h2>
               <p className="truncate text-base text-muted-foreground">{current.artist}</p>
             </div>
-            <button
-              onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
-              className="grid size-12 shrink-0 place-items-center rounded-full bg-secondary/80 backdrop-blur"
-              aria-label={liked ? "Unlike" : "Like"}
-            >
-              <Heart
-                key={pulse}
-                className={`size-6 ${liked ? "fill-accent text-accent" : "text-foreground"}`}
-                style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
-              />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <ActionButton
+                ariaLabel={liked ? "Unlike" : "Like"}
+                onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
+              >
+                <Heart
+                  key={pulse}
+                  className={`size-5 ${liked ? "fill-accent text-accent" : "text-foreground"}`}
+                  style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
+                />
+              </ActionButton>
+              <ActionButton ariaLabel="Add to playlist" onClick={() => setShowPlaylistPick(true)}>
+                <Plus className="size-5" />
+              </ActionButton>
+              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} />
+            </div>
           </div>
         )}
 
         {showLyrics && (
-          <div className="mt-3 text-center">
-            <div className="truncate font-display text-lg leading-tight">{current.title}</div>
-            <div className="truncate text-xs text-muted-foreground">{current.artist}</div>
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1 text-center">
+              <div className="truncate font-display text-lg leading-tight">{current.title}</div>
+              <div className="truncate text-xs text-muted-foreground">{current.artist}</div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <ActionButton ariaLabel="Like" onClick={() => { toggleLike(); setPulse((p) => p + 1); }} size="sm">
+                <Heart className={`size-4 ${liked ? "fill-accent text-accent" : ""}`} />
+              </ActionButton>
+              <ActionButton ariaLabel="Playlist" onClick={() => setShowPlaylistPick(true)} size="sm">
+                <Plus className="size-4" />
+              </ActionButton>
+              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} size="sm" />
+            </div>
           </div>
         )}
 
@@ -173,6 +193,162 @@ export function FullPlayer() {
             <button onClick={() => void next()} aria-label="Next"><SkipForward className="size-7" /></button>
           </div>
         </div>
+      </div>
+
+      {showPlaylistPick && current && (
+        <PlaylistPicker
+          track={{ id: current.id, title: current.title, artist: current.artist, cover: current.cover }}
+          onClose={() => setShowPlaylistPick(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ActionButton({
+  children,
+  onClick,
+  ariaLabel,
+  size = "md",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  ariaLabel: string;
+  size?: "sm" | "md";
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={`grid ${size === "sm" ? "size-9" : "size-12"} shrink-0 place-items-center rounded-full bg-secondary/80 backdrop-blur transition active:scale-90`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DownloadAction({
+  stream,
+  title,
+  artist,
+  size = "md",
+}: {
+  stream?: string;
+  title: string;
+  artist: string;
+  size?: "sm" | "md";
+}) {
+  const [busy, setBusy] = useState(false);
+  async function download() {
+    if (!stream || busy) return;
+    setBusy(true);
+    try {
+      // Try a Blob download (preferred — gives a real filename).
+      const res = await fetch(stream);
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ext = (blob.type.split("/")[1] || "mp3").split(";")[0];
+      a.download = `${artist} - ${title}`.replace(/[\\/:*?"<>|]+/g, "_") + `.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      // Fallback: open in a new tab — user can long-press / save.
+      window.open(stream, "_blank", "noopener");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <ActionButton ariaLabel="Download" onClick={download} size={size}>
+      <Download className={`${size === "sm" ? "size-4" : "size-5"} ${busy ? "animate-pulse" : ""}`} />
+    </ActionButton>
+  );
+}
+
+function PlaylistPicker({
+  track,
+  onClose,
+}: {
+  track: { id: string; title: string; artist: string; cover?: string };
+  onClose: () => void;
+}) {
+  const [items, setItems] = useState(() => getPlaylists());
+  const [name, setName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  function refresh() { setItems(getPlaylists()); }
+
+  function pick(id: string) {
+    addToPlaylist(id, track);
+    onClose();
+  }
+
+  function create() {
+    if (!name.trim()) return;
+    const pl = createPlaylist(name);
+    addToPlaylist(pl.id, track);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-[460px] rounded-t-3xl border border-border bg-card p-5 animate-fade-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-muted" />
+        <h3 className="font-display text-xl">Add to playlist</h3>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{track.title} · {track.artist}</p>
+
+        {!creating ? (
+          <button
+            onClick={() => setCreating(true)}
+            className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-secondary p-3 text-left"
+          >
+            <span className="grid size-10 place-items-center rounded-full bg-accent text-accent-foreground"><Plus className="size-5" /></span>
+            <span className="font-semibold">New playlist</span>
+          </button>
+        ) : (
+          <div className="mt-4 flex gap-2">
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Playlist name"
+              className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
+              onKeyDown={(e) => e.key === "Enter" && create()}
+            />
+            <button onClick={create} className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-foreground">Create</button>
+          </div>
+        )}
+
+        <div className="mt-4 max-h-[40vh] space-y-1 overflow-y-auto scrollbar-none">
+          {items.length === 0 && !creating && (
+            <p className="rounded-2xl bg-secondary/40 p-4 text-center text-xs text-muted-foreground">
+              No playlists yet. Create one above.
+            </p>
+          )}
+          {items.map((pl) => (
+            <button
+              key={pl.id}
+              onClick={() => pick(pl.id)}
+              className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-secondary/60"
+            >
+              <span className="grid size-10 place-items-center rounded-xl bg-secondary"><ListMusic className="size-5" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{pl.name}</span>
+                <span className="block text-[11px] text-muted-foreground">{pl.tracks.length} tracks</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <button onClick={onClose} className="mt-4 w-full rounded-full bg-secondary py-2 text-sm font-semibold">Close</button>
       </div>
     </div>
   );

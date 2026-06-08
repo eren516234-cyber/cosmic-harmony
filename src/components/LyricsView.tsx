@@ -196,10 +196,14 @@ function IOSLines({ synced, active, onSeek }: { synced: LineProps["synced"]; act
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className={`cursor-pointer px-2 font-display text-2xl leading-snug transition-all duration-500 ${
-              i === active ? "scale-[1.05] text-white" : "text-white/25"
+            className={`cursor-pointer px-2 font-display text-[26px] leading-snug font-bold transition-all duration-500 ${
+              i === active ? "scale-[1.05] text-white" : "text-white/55"
             }`}
-            style={{ filter: `blur(${blur}px)`, willChange: "transform, opacity" }}
+            style={{
+              filter: `blur(${blur}px)`,
+              willChange: "transform, opacity",
+              textShadow: i === active ? "0 0 22px rgba(255,255,255,0.65), 0 0 44px rgba(255,255,255,0.35)" : "none",
+            }}
           >
             {l.text || "♪"}
           </p>
@@ -221,7 +225,7 @@ function WordLines({ synced, active, progress, onSeek, accent }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className={`cursor-pointer px-2 font-display text-2xl leading-snug ${i === active ? "" : "text-white/20"}`}
+            className={`cursor-pointer px-2 font-display text-[26px] leading-snug font-bold ${i === active ? "" : "text-white/50"}`}
           >
             {words.map((w, j) => {
               const lit = j < reveal;
@@ -230,7 +234,7 @@ function WordLines({ synced, active, progress, onSeek, accent }: LineProps) {
                   key={j}
                   className="mr-2 inline-block transition-all duration-200"
                   style={{
-                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.22)",
+                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.55)",
                     textShadow: lit && i === active ? `0 0 18px ${accent ?? "rgba(255,255,255,0.6)"}` : "none",
                     transform: lit && i === active ? "translateY(-2px)" : "none",
                   }}
@@ -259,7 +263,7 @@ function KaraokeLines({ synced, active, progress, onSeek, accent }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className={`cursor-pointer px-2 font-display text-2xl leading-snug ${i === active ? "" : "text-white/15"}`}
+            className={`cursor-pointer px-2 font-display text-[26px] leading-snug font-bold ${i === active ? "" : "text-white/45"}`}
           >
             {chars.map((c, j) => {
               const lit = j < reveal;
@@ -269,7 +273,7 @@ function KaraokeLines({ synced, active, progress, onSeek, accent }: LineProps) {
                   key={j}
                   className="inline-block transition-all duration-150"
                   style={{
-                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.18)",
+                    color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.5)",
                     textShadow: lit ? `0 0 12px ${accent ?? "#fff"}, 0 0 24px ${accent ?? "#fff"}` : "none",
                     transform: justLit ? "translateY(-4px) scale(1.18)" : "none",
                   }}
@@ -313,7 +317,7 @@ function WaveLines({ synced, active, progress, onSeek, accent }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className={`cursor-pointer px-2 text-center font-display text-2xl leading-snug ${isActive ? "" : "text-white/20"}`}
+            className={`cursor-pointer px-2 text-center font-display text-[26px] leading-snug font-bold ${isActive ? "" : "text-white/50"}`}
           >
             {chars.map((c, j) => {
               const phase = isActive ? Math.sin(t * 3 + j * 0.35 + progress * 4) : 0;
@@ -351,8 +355,8 @@ function GlowLines({ synced, active, progress, onSeek, accent }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className={`cursor-pointer px-2 text-center font-display text-2xl leading-snug transition-all duration-500 ${
-              isActive ? "scale-105" : "scale-100 text-white/25"
+            className={`cursor-pointer px-2 text-center font-display text-[26px] leading-snug font-bold transition-all duration-500 ${
+              isActive ? "scale-105" : "scale-100 text-white/55"
             }`}
             style={{
               color: isActive ? "#fff" : undefined,
@@ -381,9 +385,9 @@ function CinematicLines({ synced, active, onSeek }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className="cursor-pointer px-4 text-center font-display text-2xl leading-snug transition-all duration-700"
+            className="cursor-pointer px-4 text-center font-display text-[26px] leading-snug font-bold transition-all duration-700"
             style={{
-              color: isActive ? "#fff" : "rgba(255,255,255,0.05)",
+              color: isActive ? "#fff" : "rgba(255,255,255,0.35)",
               filter: isActive ? "none" : "blur(2px)",
               textShadow: isActive ? "0 0 30px rgba(255,255,255,0.4)" : "none",
               transform: isActive ? "scale(1.06)" : "scale(1)",
@@ -412,9 +416,9 @@ function FloatLines({ synced, active, onSeek, accent }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className="cursor-pointer px-2 font-display text-2xl leading-snug transition-colors duration-500"
+            className="cursor-pointer px-2 font-display text-[26px] leading-snug font-bold transition-colors duration-500"
             style={{
-              color: isActive ? "#fff" : "rgba(255,255,255,0.22)",
+              color: isActive ? "#fff" : "rgba(255,255,255,0.55)",
               textShadow: isActive ? `0 0 22px ${accent ?? "rgba(255,255,255,0.5)"}` : "none",
               transform: `translate(${drift}px, ${float}px) scale(${isActive ? 1.06 : 1 - Math.min(Math.abs(dist) * 0.04, 0.2)})`,
               opacity: isActive ? 1 : Math.max(0.18, 1 - Math.abs(dist) * 0.18),
@@ -443,7 +447,7 @@ function PulseLines({ synced, active, progress, onSeek, accent }: LineProps) {
             key={i}
             data-line={i}
             onClick={() => onSeek?.(l.time)}
-            className={`cursor-pointer px-2 text-center font-display text-2xl leading-snug ${isActive ? "" : "text-white/22"}`}
+            className={`cursor-pointer px-2 text-center font-display text-[26px] leading-snug font-bold ${isActive ? "" : "text-white/55"}`}
             style={{
               color: isActive ? "#fff" : undefined,
               transform: isActive ? `scale(${scale})` : "scale(1)",
