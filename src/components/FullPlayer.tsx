@@ -194,6 +194,163 @@ export function FullPlayer() {
           </div>
         </div>
       </div>
+
+      {showPlaylistPick && current && (
+        <PlaylistPicker
+          track={{ id: current.id, title: current.title, artist: current.artist, cover: current.cover }}
+          onClose={() => setShowPlaylistPick(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ActionButton({
+  children,
+  onClick,
+  ariaLabel,
+  size = "md",
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  ariaLabel: string;
+  size?: "sm" | "md";
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={`grid ${size === "sm" ? "size-9" : "size-12"} shrink-0 place-items-center rounded-full bg-secondary/80 backdrop-blur transition active:scale-90`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DownloadAction({
+  stream,
+  title,
+  artist,
+  size = "md",
+}: {
+  stream?: string;
+  title: string;
+  artist: string;
+  size?: "sm" | "md";
+}) {
+  const [busy, setBusy] = useState(false);
+  async function download() {
+    if (!stream || busy) return;
+    setBusy(true);
+    try {
+      // Try a Blob download (preferred — gives a real filename).
+      const res = await fetch(stream);
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ext = (blob.type.split("/")[1] || "mp3").split(";")[0];
+      a.download = `${artist} - ${title}`.replace(/[\\/:*?"<>|]+/g, "_") + `.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      // Fallback: open in a new tab — user can long-press / save.
+      window.open(stream, "_blank", "noopener");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <ActionButton ariaLabel="Download" onClick={download} size={size}>
+      <Download className={`${size === "sm" ? "size-4" : "size-5"} ${busy ? "animate-pulse" : ""}`} />
+    </ActionButton>
+  );
+}
+
+function PlaylistPicker({
+  track,
+  onClose,
+}: {
+  track: { id: string; title: string; artist: string; cover?: string };
+  onClose: () => void;
+}) {
+  const [items, setItems] = useState(() => getPlaylists());
+  const [name, setName] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  function refresh() { setItems(getPlaylists()); }
+
+  function pick(id: string) {
+    addToPlaylist(id, track);
+    onClose();
+  }
+
+  function create() {
+    if (!name.trim()) return;
+    const { createPlaylist } = require("@/lib/playlists") as typeof import("@/lib/playlists");
+    const pl = createPlaylist(name);
+    addToPlaylist(pl.id, track);
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="w-full max-w-[460px] rounded-t-3xl border border-border bg-card p-5 animate-fade-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-muted" />
+        <h3 className="font-display text-xl">Add to playlist</h3>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{track.title} · {track.artist}</p>
+
+        {!creating ? (
+          <button
+            onClick={() => setCreating(true)}
+            className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-secondary p-3 text-left"
+          >
+            <span className="grid size-10 place-items-center rounded-full bg-accent text-accent-foreground"><Plus className="size-5" /></span>
+            <span className="font-semibold">New playlist</span>
+          </button>
+        ) : (
+          <div className="mt-4 flex gap-2">
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Playlist name"
+              className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm outline-none focus:border-accent"
+              onKeyDown={(e) => e.key === "Enter" && create()}
+            />
+            <button onClick={create} className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-accent-foreground">Create</button>
+          </div>
+        )}
+
+        <div className="mt-4 max-h-[40vh] space-y-1 overflow-y-auto scrollbar-none">
+          {items.length === 0 && !creating && (
+            <p className="rounded-2xl bg-secondary/40 p-4 text-center text-xs text-muted-foreground">
+              No playlists yet. Create one above.
+            </p>
+          )}
+          {items.map((pl) => (
+            <button
+              key={pl.id}
+              onClick={() => pick(pl.id)}
+              className="flex w-full items-center gap-3 rounded-2xl p-2 text-left hover:bg-secondary/60"
+            >
+              <span className="grid size-10 place-items-center rounded-xl bg-secondary"><ListMusic className="size-5" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold">{pl.name}</span>
+                <span className="block text-[11px] text-muted-foreground">{pl.tracks.length} tracks</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <button onClick={onClose} className="mt-4 w-full rounded-full bg-secondary py-2 text-sm font-semibold">Close</button>
+      </div>
     </div>
   );
 }
