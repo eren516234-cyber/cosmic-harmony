@@ -1,9 +1,10 @@
-import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart } from "lucide-react";
+import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart, Download, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlayer, formatTime } from "@/lib/player";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
+import { addToPlaylist, getPlaylists } from "@/lib/playlists";
 
 const MODE_KEY = "yvl.lyrics-mode";
 const MODES = LYRICS_MODES;
