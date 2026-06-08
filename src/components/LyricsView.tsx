@@ -399,7 +399,7 @@ function CinematicLines({ synced, active, onSeek }: LineProps) {
 
 /* ---------- 7. Floating Parallax ---------- */
 function FloatLines({ synced, active, onSeek, accent }: LineProps) {
-  const t = performance.now() / 1000;
+  const t = useNow(24);
   return (
     <>
       {synced.map((l, i) => {
