@@ -286,8 +286,23 @@ function KaraokeLines({ synced, active, progress, onSeek, accent }: LineProps) {
 }
 
 /* ---------- 4. Fluid Wave ---------- */
+function useNow(fps = 30) {
+  const [, setN] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    let last = 0;
+    const step = (t: number) => {
+      if (t - last > 1000 / fps) { last = t; setN((n) => n + 1); }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [fps]);
+  return performance.now() / 1000;
+}
+
 function WaveLines({ synced, active, progress, onSeek, accent }: LineProps) {
-  const t = performance.now() / 1000;
+  const t = useNow(30);
   return (
     <>
       {synced.map((l, i) => {
