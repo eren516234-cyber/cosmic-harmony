@@ -71,24 +71,26 @@ export function FullPlayer() {
           </button>
         </header>
 
-        {/* Album art — always visible (shrinks when lyrics on) */}
-        <div className={`relative mx-auto mt-6 transition-all duration-500 ${showLyrics ? "w-[180px]" : "w-full max-w-[320px]"}`}>
-          <div className="aspect-square">
-            <div
-              className="relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
-              style={{ animation: isPlaying ? "spin-slow 22s linear infinite" : "none" }}
-            >
-              {current.cover && (
-                <img src={current.cover} alt="" className="size-full object-cover" />
-              )}
+        {/* Album art — only when lyrics are OFF (lyrics get full real estate) */}
+        {!showLyrics && (
+          <div className="relative mx-auto mt-6 w-full max-w-[320px]">
+            <div className="aspect-square">
               <div
-                className="pointer-events-none absolute inset-0 rounded-full"
-                style={{ background: "repeating-radial-gradient(circle at center, rgba(0,0,0,0.18) 0 1px, transparent 1px 6px)" }}
-              />
-              <div className={`absolute left-1/2 top-1/2 ${showLyrics ? "size-7" : "size-12"} -translate-x-1/2 -translate-y-1/2 rounded-full bg-background ring-4 ring-accent transition-all`} />
+                className="relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
+                style={{ animation: isPlaying ? "spin-slow 22s linear infinite" : "none" }}
+              >
+                {current.cover && (
+                  <img src={current.cover} alt="" className="size-full object-cover" />
+                )}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-full"
+                  style={{ background: "repeating-radial-gradient(circle at center, rgba(0,0,0,0.18) 0 1px, transparent 1px 6px)" }}
+                />
+                <div className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background ring-4 ring-accent" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Lyrics in compact card */}
         {showLyrics && (
