@@ -46,7 +46,7 @@ export function EarthOrb({ albums }: { albums: SaavnAlbum[] }) {
   }
 
   return (
-    <div className="relative mx-auto h-[420px] w-full max-w-[420px] select-none overflow-hidden rounded-3xl" style={{ background: "radial-gradient(ellipse at center, #06070d 0%, #000 70%)" }}>
+    <div className="relative mx-auto h-[480px] w-full max-w-[480px] select-none overflow-hidden rounded-3xl" style={{ background: "radial-gradient(ellipse at center, #06070d 0%, #000 70%)" }}>
       {/* Starfield */}
       <div className="pointer-events-none absolute inset-0" style={{
         backgroundImage:
