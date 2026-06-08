@@ -4,7 +4,7 @@ import { usePlayer, formatTime } from "@/lib/player";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
-import { addToPlaylist, getPlaylists } from "@/lib/playlists";
+import { addToPlaylist, createPlaylist, getPlaylists } from "@/lib/playlists";
 
 const MODE_KEY = "yvl.lyrics-mode";
 const MODES = LYRICS_MODES;
