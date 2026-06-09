@@ -106,6 +106,31 @@
   animation: rainbow-shift 14s linear infinite;
 }
 
+/* Aurora theme: animated multi-color gradient background behind the app */
+:root[data-aurora="on"] body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 40% at 20% 25%, #ff4d8d 0%, transparent 60%),
+    radial-gradient(45% 45% at 80% 30%, #4d9aff 0%, transparent 60%),
+    radial-gradient(50% 50% at 50% 80%, #b14dff 0%, transparent 60%),
+    radial-gradient(35% 35% at 80% 80%, #ffd23f 0%, transparent 60%);
+  filter: blur(80px) saturate(1.2);
+  opacity: 0.55;
+  animation: aurora-drift 18s linear infinite;
+}
+:root[data-aurora="on"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(0,0,0,0.35);
+}
+
 @keyframes equalizer {
   0%, 100% { transform: scaleY(0.4); }
   50%      { transform: scaleY(1); }
