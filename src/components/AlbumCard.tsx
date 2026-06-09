@@ -34,7 +34,7 @@ export function AlbumCard({ album, size = 160, offset = 0 }: { album: SaavnAlbum
       className="group relative block shrink-0"
       style={{ width: size, transform: offset ? `translateY(${offset}px)` : undefined }}
     >
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-secondary">
+      <div className="native-album-card relative aspect-square overflow-hidden rounded-[1.75rem] bg-secondary">
         {cover && (
           <img
             src={cover}

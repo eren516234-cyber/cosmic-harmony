@@ -4,6 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 import "./styles.css";
+import { configureNativeShell } from "./lib/native-shell";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5 * 60_000, retry: 1 } },
@@ -21,7 +22,9 @@ const router = createRouter({
   defaultPreload: "intent",
 });
 
-if ("Notification" in window) {
+configureNativeShell();
+
+if (!(document.body.classList.contains("native-shell")) && "Notification" in window) {
   Notification.requestPermission().catch(() => {});
 }
 

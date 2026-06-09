@@ -18,13 +18,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { current } = usePlayer();
 
   return (
-    <div className="min-h-screen w-full pb-40">
+    <div className="native-app-shell min-h-screen w-full pb-40">
       <div className="mx-auto w-full max-w-[440px] px-5 pt-6 sm:max-w-[520px] md:max-w-[680px] md:px-8 lg:max-w-[820px]">
         <div key={pathname} className="animate-fade-up">{children}</div>
       </div>
 
       {/* Bottom dock */}
-      <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center pb-3">
+      <div className="native-bottom-dock fixed inset-x-0 bottom-0 z-40 flex justify-center pb-3">
         <div className="w-[min(680px,calc(100vw-24px))] space-y-2">
           {current && <MiniPlayer />}
           <nav className="flex items-center justify-around rounded-full border border-border bg-card/80 px-2 py-2 backdrop-blur-xl">
