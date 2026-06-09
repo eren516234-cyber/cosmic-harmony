@@ -4,7 +4,7 @@ import { usePlayer, formatTime } from "@/lib/player";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
-import { addToPlaylist, createPlaylist, getPlaylists } from "@/lib/playlists";
+import { addToPlaylist, createPlaylist, getPlaylists, ensureDownloadsPlaylist } from "@/lib/playlists";
 
 const MODE_KEY = "yvl.lyrics-mode";
 const MODES = LYRICS_MODES;
@@ -72,7 +72,6 @@ export function FullPlayer() {
           </button>
         </header>
 
-        {/* Album art — only when lyrics are OFF (lyrics get full real estate) */}
         {!showLyrics && (
           <div className="relative mx-auto mt-6 w-full max-w-[320px]">
             <div className="aspect-square">
@@ -93,7 +92,6 @@ export function FullPlayer() {
           </div>
         )}
 
-        {/* Lyrics in compact card */}
         {showLyrics && (
           <div className="mt-3 flex flex-1 flex-col overflow-hidden">
             <div className="mx-auto mb-2 flex max-w-full gap-1 overflow-x-auto rounded-full bg-secondary/70 p-1 backdrop-blur scrollbar-none">
@@ -142,7 +140,13 @@ export function FullPlayer() {
               <ActionButton ariaLabel="Add to playlist" onClick={() => setShowPlaylistPick(true)}>
                 <Plus className="size-5" />
               </ActionButton>
-              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} />
+              <DownloadAction
+                stream={current.stream}
+                title={current.title}
+                artist={current.artist}
+                trackId={current.id}
+                cover={current.cover}
+              />
             </div>
           </div>
         )}
@@ -160,12 +164,18 @@ export function FullPlayer() {
               <ActionButton ariaLabel="Playlist" onClick={() => setShowPlaylistPick(true)} size="sm">
                 <Plus className="size-4" />
               </ActionButton>
-              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} size="sm" />
+              <DownloadAction
+                stream={current.stream}
+                title={current.title}
+                artist={current.artist}
+                trackId={current.id}
+                cover={current.cover}
+                size="sm"
+              />
             </div>
           </div>
         )}
 
-        {/* Controls */}
         <div className="mt-5 space-y-3">
           <input
             type="range"
@@ -231,19 +241,23 @@ function DownloadAction({
   stream,
   title,
   artist,
+  trackId,
+  cover,
   size = "md",
 }: {
   stream?: string;
   title: string;
   artist: string;
+  trackId?: string;
+  cover?: string;
   size?: "sm" | "md";
 }) {
   const [busy, setBusy] = useState(false);
+
   async function download() {
     if (!stream || busy) return;
     setBusy(true);
     try {
-      // Try a Blob download (preferred — gives a real filename).
       const res = await fetch(stream);
       if (!res.ok) throw new Error("fetch failed");
       const blob = await res.blob();
@@ -256,13 +270,30 @@ function DownloadAction({
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+      // Auto-save to Downloads playlist in library
+      if (trackId) {
+        const dl = ensureDownloadsPlaylist();
+        addToPlaylist(dl.id, { id: trackId, title, artist, cover });
+      }
+
+      // Show download complete notification
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification("✓ Downloaded", {
+            body: `${title} — ${artist}`,
+            icon: cover,
+            tag: "download",
+          });
+        } catch {}
+      }
     } catch {
-      // Fallback: open in a new tab — user can long-press / save.
       window.open(stream, "_blank", "noopener");
     } finally {
       setBusy(false);
     }
   }
+
   return (
     <ActionButton ariaLabel="Download" onClick={download} size={size}>
       <Download className={`${size === "sm" ? "size-4" : "size-5"} ${busy ? "animate-pulse" : ""}`} />
@@ -282,6 +313,7 @@ function PlaylistPicker({
   const [creating, setCreating] = useState(false);
 
   function refresh() { setItems(getPlaylists()); }
+  void refresh;
 
   function pick(id: string) {
     addToPlaylist(id, track);
