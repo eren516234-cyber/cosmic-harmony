@@ -28,6 +28,13 @@ jobs:
       - name: Build web app (SPA)
         run: bun run build:cap
 
+      - name: Rename entry to index.html
+        run: |
+          if [ -f dist-cap/index.cap.html ]; then
+            mv dist-cap/index.cap.html dist-cap/index.html
+          fi
+          ls dist-cap/
+
       - name: Add Android platform
         run: bunx cap add android
 
