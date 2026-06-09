@@ -32,6 +32,16 @@ function SettingsPage() {
         </Card>
 
         <Card>
+          <Toggle
+            emoji="✨"
+            title="Aurora Mode"
+            subtitle="Animated cinematic gradient background"
+            value={t.aurora}
+            onChange={t.setAurora}
+          />
+        </Card>
+
+        <Card>
           <div className="space-y-3">
             <div className="text-base font-semibold">✏️ Custom Colour</div>
             <div className="flex flex-wrap gap-3">
