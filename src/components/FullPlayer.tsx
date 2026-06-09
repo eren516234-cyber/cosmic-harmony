@@ -1,20 +1,23 @@
-import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart, Download, Plus } from "lucide-react";
+import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart, Download, Plus, Shuffle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlayer, formatTime } from "@/lib/player";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
-import { addToPlaylist, createPlaylist, getPlaylists } from "@/lib/playlists";
+import { addToPlaylist, createPlaylist, ensureDownloadsPlaylist, getPlaylists } from "@/lib/playlists";
 
 const MODE_KEY = "yvl.lyrics-mode";
 const MODES = LYRICS_MODES;
 
 export function FullPlayer() {
-  const { current, expanded, expand, isPlaying, toggle, next, prev, position, duration, seek } = usePlayer();
+  const { current, expanded, expand, isPlaying, toggle, next, prev, position, duration, seek, queue, play } = usePlayer();
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState<Lyrics>(null);
   const [loadingL, setLoadingL] = useState(false);
-  const { liked, toggle: toggleLike } = useLike(current?.id);
+  const trackMeta = current
+    ? { id: current.id, title: current.title, artist: current.artist, cover: current.cover }
+    : undefined;
+  const { liked, toggle: toggleLike } = useLike(trackMeta);
   const [pulse, setPulse] = useState(0);
   const [showPlaylistPick, setShowPlaylistPick] = useState(false);
   const [mode, setMode] = useState<LyricsMode>(() => {
@@ -33,8 +36,13 @@ export function FullPlayer() {
       .finally(() => setLoadingL(false));
   }, [current?.id]);
 
-
   if (!current || !expanded) return null;
+
+  function shufflePlay() {
+    if (queue.length < 2) return;
+    const shuffled = [...queue].sort(() => Math.random() - 0.5);
+    void play(shuffled, 0);
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: "var(--background)" }}>
@@ -72,10 +80,10 @@ export function FullPlayer() {
           </button>
         </header>
 
-        {/* Album art — only when lyrics are OFF (lyrics get full real estate) */}
-        {!showLyrics && (
-          <div className="relative mx-auto mt-6 w-full max-w-[320px]">
-            <div className="aspect-square">
+        {/* Hero area — same 1:1 footprint for both album art and lyrics window */}
+        <div className="relative mx-auto mt-6 w-full max-w-[340px]">
+          <div className="aspect-square">
+            {!showLyrics ? (
               <div
                 className="relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
                 style={{ animation: isPlaying ? "spin-slow 22s linear infinite" : "none" }}
@@ -89,14 +97,22 @@ export function FullPlayer() {
                 />
                 <div className="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-background ring-4 ring-accent" />
               </div>
-            </div>
+            ) : (
+              <div className="relative size-full overflow-hidden rounded-3xl border border-border bg-black/55 backdrop-blur-xl">
+                <LyricsView
+                  lyrics={lyrics}
+                  position={position}
+                  duration={duration}
+                  mode={mode}
+                  loading={loadingL}
+                  onSeek={seek}
+                />
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Lyrics in compact card */}
-        {showLyrics && (
-          <div className="mt-3 flex flex-1 flex-col overflow-hidden">
-            <div className="mx-auto mb-2 flex max-w-full gap-1 overflow-x-auto rounded-full bg-secondary/70 p-1 backdrop-blur scrollbar-none">
+          {showLyrics && (
+            <div className="mx-auto mt-2 flex max-w-full gap-1 overflow-x-auto rounded-full bg-secondary/70 p-1 backdrop-blur scrollbar-none">
               {MODES.map((m) => (
                 <button
                   key={m.id}
@@ -109,64 +125,36 @@ export function FullPlayer() {
                 </button>
               ))}
             </div>
-            <div className="relative flex-1 overflow-hidden rounded-3xl border border-border bg-card/30 backdrop-blur">
-              <LyricsView
-                lyrics={lyrics}
-                position={position}
-                duration={duration}
-                mode={mode}
-                loading={loadingL}
-                onSeek={seek}
+          )}
+        </div>
+
+        {/* Title + actions row — always present, never hidden */}
+        <div className="mt-5 flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="truncate font-display text-2xl leading-tight">{current.title}</h2>
+            <p className="truncate text-sm text-muted-foreground">{current.artist}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <ActionButton
+              ariaLabel={liked ? "Unlike" : "Like"}
+              onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
+              size="sm"
+            >
+              <Heart
+                key={pulse}
+                className={`size-4 ${liked ? "fill-accent text-accent" : "text-foreground"}`}
+                style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
               />
-            </div>
+            </ActionButton>
+            <ActionButton ariaLabel="Add to playlist" onClick={() => setShowPlaylistPick(true)} size="sm">
+              <Plus className="size-4" />
+            </ActionButton>
+            <DownloadAction stream={current.stream} title={current.title} artist={current.artist} cover={current.cover} id={current.id} size="sm" />
           </div>
-        )}
+        </div>
 
-        {!showLyrics && (
-          <div className="mt-6 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h2 className="truncate font-display text-3xl leading-tight">{current.title}</h2>
-              <p className="truncate text-base text-muted-foreground">{current.artist}</p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <ActionButton
-                ariaLabel={liked ? "Unlike" : "Like"}
-                onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
-              >
-                <Heart
-                  key={pulse}
-                  className={`size-5 ${liked ? "fill-accent text-accent" : "text-foreground"}`}
-                  style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
-                />
-              </ActionButton>
-              <ActionButton ariaLabel="Add to playlist" onClick={() => setShowPlaylistPick(true)}>
-                <Plus className="size-5" />
-              </ActionButton>
-              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} />
-            </div>
-          </div>
-        )}
-
-        {showLyrics && (
-          <div className="mt-3 flex items-center justify-between gap-2">
-            <div className="min-w-0 flex-1 text-center">
-              <div className="truncate font-display text-lg leading-tight">{current.title}</div>
-              <div className="truncate text-xs text-muted-foreground">{current.artist}</div>
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <ActionButton ariaLabel="Like" onClick={() => { toggleLike(); setPulse((p) => p + 1); }} size="sm">
-                <Heart className={`size-4 ${liked ? "fill-accent text-accent" : ""}`} />
-              </ActionButton>
-              <ActionButton ariaLabel="Playlist" onClick={() => setShowPlaylistPick(true)} size="sm">
-                <Plus className="size-4" />
-              </ActionButton>
-              <DownloadAction stream={current.stream} title={current.title} artist={current.artist} size="sm" />
-            </div>
-          </div>
-        )}
-
-        {/* Controls */}
-        <div className="mt-5 space-y-3">
+        {/* Controls — always visible */}
+        <div className="mt-auto space-y-3 pt-4">
           <input
             type="range"
             min={0}
@@ -181,7 +169,8 @@ export function FullPlayer() {
             <span>{formatTime(position)}</span>
             <span>{formatTime(duration)}</span>
           </div>
-          <div className="flex items-center justify-center gap-8 pt-1">
+          <div className="flex items-center justify-center gap-6 pt-1">
+            <button onClick={shufflePlay} aria-label="Shuffle" className="text-muted-foreground hover:text-foreground"><Shuffle className="size-5" /></button>
             <button onClick={() => void prev()} aria-label="Previous"><SkipBack className="size-7" /></button>
             <button
               onClick={toggle}
@@ -191,6 +180,7 @@ export function FullPlayer() {
               {isPlaying ? <Pause className="size-7" /> : <Play className="size-7 translate-x-[2px]" />}
             </button>
             <button onClick={() => void next()} aria-label="Next"><SkipForward className="size-7" /></button>
+            <div className="size-5" />
           </div>
         </div>
       </div>
@@ -231,11 +221,15 @@ function DownloadAction({
   stream,
   title,
   artist,
+  cover,
+  id,
   size = "md",
 }: {
   stream?: string;
   title: string;
   artist: string;
+  cover?: string;
+  id: string;
   size?: "sm" | "md";
 }) {
   const [busy, setBusy] = useState(false);
@@ -243,7 +237,6 @@ function DownloadAction({
     if (!stream || busy) return;
     setBusy(true);
     try {
-      // Try a Blob download (preferred — gives a real filename).
       const res = await fetch(stream);
       if (!res.ok) throw new Error("fetch failed");
       const blob = await res.blob();
@@ -257,9 +250,11 @@ function DownloadAction({
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
     } catch {
-      // Fallback: open in a new tab — user can long-press / save.
       window.open(stream, "_blank", "noopener");
     } finally {
+      // Auto-add to Downloads playlist in library
+      const pl = ensureDownloadsPlaylist();
+      addToPlaylist(pl.id, { id, title, artist, cover });
       setBusy(false);
     }
   }
@@ -280,8 +275,6 @@ function PlaylistPicker({
   const [items, setItems] = useState(() => getPlaylists());
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
-
-  function refresh() { setItems(getPlaylists()); }
 
   function pick(id: string) {
     addToPlaylist(id, track);
