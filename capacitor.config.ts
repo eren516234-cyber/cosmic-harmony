@@ -6,6 +6,17 @@ const config: CapacitorConfig = {
   webDir: "dist-cap",
   server: {
     androidScheme: "https",
+    iosScheme: "capacitor",
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 0,
+    },
+    StatusBar: {
+      overlaysWebView: true,
+      style: "DARK",
+      backgroundColor: "#000000",
+    },
   },
 };
 

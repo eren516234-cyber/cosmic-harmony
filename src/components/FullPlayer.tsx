@@ -1,6 +1,7 @@
 import { ChevronDown, Pause, Play, SkipBack, SkipForward, Mic2, ListMusic, Heart, Download, Plus, Shuffle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlayer, formatTime } from "@/lib/player";
+import { nativeImpact, writeNativeDownload } from "@/lib/native-shell";
 import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
@@ -61,7 +62,7 @@ export function FullPlayer() {
       <div className="relative mx-auto flex w-full max-w-[440px] flex-1 flex-col px-6 pb-8 pt-6 md:max-w-[560px]">
         <header className="flex items-center justify-between">
           <button
-            onClick={() => expand(false)}
+            onClick={() => { nativeImpact(); expand(false); }}
             className="grid size-10 place-items-center rounded-full bg-secondary/80 backdrop-blur"
             aria-label="Collapse"
           >
@@ -72,7 +73,7 @@ export function FullPlayer() {
             <div className="text-xs font-semibold">YVL</div>
           </div>
           <button
-            onClick={() => setShowLyrics((v) => !v)}
+            onClick={() => { nativeImpact(); setShowLyrics((v) => !v); }}
             className={`grid size-10 place-items-center rounded-full ${showLyrics ? "bg-accent text-accent-foreground" : "bg-secondary/80 backdrop-blur"}`}
             aria-label="Toggle lyrics"
           >
@@ -85,7 +86,7 @@ export function FullPlayer() {
           <div className="aspect-square">
             {!showLyrics ? (
               <div
-                className="relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
+                className="native-now-playing-art relative size-full overflow-hidden rounded-full bg-secondary shadow-glow"
                 style={{ animation: isPlaying ? "spin-slow 22s linear infinite" : "none" }}
               >
                 {current.cover && (
@@ -137,7 +138,7 @@ export function FullPlayer() {
           <div className="flex shrink-0 items-center gap-1.5">
             <ActionButton
               ariaLabel={liked ? "Unlike" : "Like"}
-              onClick={() => { toggleLike(); setPulse((p) => p + 1); }}
+              onClick={() => { nativeImpact("MEDIUM"); toggleLike(); setPulse((p) => p + 1); }}
               size="sm"
             >
               <Heart
@@ -146,7 +147,7 @@ export function FullPlayer() {
                 style={{ animation: pulse ? "heart-pop 420ms cubic-bezier(.2,.8,.2,1)" : undefined }}
               />
             </ActionButton>
-            <ActionButton ariaLabel="Add to playlist" onClick={() => setShowPlaylistPick(true)} size="sm">
+            <ActionButton ariaLabel="Add to playlist" onClick={() => { nativeImpact(); setShowPlaylistPick(true); }} size="sm">
               <Plus className="size-4" />
             </ActionButton>
             <DownloadAction stream={current.stream} title={current.title} artist={current.artist} cover={current.cover} id={current.id} size="sm" />
@@ -173,7 +174,7 @@ export function FullPlayer() {
             <button onClick={shufflePlay} aria-label="Shuffle" className="text-muted-foreground hover:text-foreground"><Shuffle className="size-5" /></button>
             <button onClick={() => void prev()} aria-label="Previous"><SkipBack className="size-7" /></button>
             <button
-              onClick={toggle}
+              onClick={() => { nativeImpact("MEDIUM"); toggle(); }}
               className="grid size-16 place-items-center rounded-full bg-accent text-accent-foreground shadow-glow"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
@@ -240,15 +241,19 @@ function DownloadAction({
       const res = await fetch(stream);
       if (!res.ok) throw new Error("fetch failed");
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
       const ext = (blob.type.split("/")[1] || "mp3").split(";")[0];
-      a.download = `${artist} - ${title}`.replace(/[\\/:*?"<>|]+/g, "_") + `.${ext}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      const filename = `${artist} - ${title}`.replace(/[\\/:*?"<>|]+/g, "_") + `.${ext}`;
+      const savedNative = await writeNativeDownload(blob, filename, `${artist} - ${title}`);
+      if (!savedNative) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      }
     } catch {
       window.open(stream, "_blank", "noopener");
     } finally {
