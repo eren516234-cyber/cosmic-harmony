@@ -2,9 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Saavn, toTrack, bestImage, primaryArtist } from "@/lib/saavn";
-import { SongRow } from "@/components/SongRow";
 import { AlbumCard } from "@/components/AlbumCard";
-import { EarthOrb } from "@/components/EarthOrb";
 import { useRouteAccent } from "@/lib/theme";
 import { usePlayer, formatTime } from "@/lib/player";
 import { Play } from "lucide-react";
@@ -13,7 +11,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "YVL — For you" },
-      { name: "description", content: "Quick picks, new songs and curated mixes — streamed from JioSaavn with synced lyrics." },
+      { name: "description", content: "Quick picks and new drops — streamed with synced lyrics." },
     ],
   }),
   component: Home,
@@ -33,27 +31,22 @@ const TABS = [
 function Home() {
   useRouteAccent("home");
   const [tab, setTab] = useState<typeof TABS[number]["key"]>("for-you");
-  const [songsExpanded, setSongsExpanded] = useState(false);
-  const [playlistsExpanded, setPlaylistsExpanded] = useState(false);
   const active = TABS.find((t) => t.key === tab)!;
 
   const songsQ = useQuery({
     queryKey: ["home", "songs", active.query],
-    queryFn: () => Saavn.searchSongs(active.query, 40).then((r) => r.results),
+    queryFn: () => Saavn.searchSongs(active.query, 30).then((r) => r.results),
     staleTime: 5 * 60_000,
   });
   const albumsQ = useQuery({
     queryKey: ["home", "albums", active.query],
-    queryFn: () => Saavn.searchAlbums(active.query, 45).then((r) => r.results),
+    queryFn: () => Saavn.searchAlbums(active.query, 24).then((r) => r.results),
     staleTime: 5 * 60_000,
   });
 
   const allSongs = songsQ.data ?? [];
-  const quick = allSongs.slice(0, 5);
-  const more = songsExpanded ? allSongs.slice(5) : allSongs.slice(5, 12);
-
+  const quick = allSongs.slice(0, 8);
   const albums = albumsQ.data ?? [];
-  const playlistShown = playlistsExpanded ? albums : albums.slice(0, 12);
 
   return (
     <div className="space-y-8">
@@ -84,20 +77,9 @@ function Home() {
       </header>
 
       <section>
-        <SectionHeader title="Orbit · spin to explore" />
-        <div className="mt-2">
-          {albumsQ.isLoading ? (
-            <div className="h-[360px] animate-pulse rounded-3xl bg-secondary/40" />
-          ) : (
-            <EarthOrb albums={albums} />
-          )}
-        </div>
-      </section>
-
-      <section>
         <SectionHeader title="Quick picks" />
         {songsQ.isLoading && <SkeletonRows />}
-        {songsQ.isError && <ErrorNote msg="Couldn’t load songs from JioSaavn." />}
+        {songsQ.isError && <ErrorNote msg="Couldn't load songs." />}
         <div className="mt-3 space-y-1">
           {quick.map((s) => (
             <FeaturedRow key={s.id} song={s} queue={allSongs} />
@@ -105,60 +87,11 @@ function Home() {
         </div>
       </section>
 
-      {/* Wavy / staggered playlists */}
-      <section>
-        <SectionHeader
-          title={`Playlists · ${albums.length}`}
-          action={
-            albums.length > 12 && (
-              <button
-                onClick={() => setPlaylistsExpanded((v) => !v)}
-                className="text-sm font-semibold text-accent"
-              >
-                {playlistsExpanded ? "Show less" : "See more"}
-              </button>
-            )
-          }
-        />
-        <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3">
-          {playlistShown.map((a, i) => (
-            <AlbumCard
-              key={a.id}
-              album={a}
-              size={160}
-              offset={i % 2 === 0 ? 0 : 22}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* New songs - horizontal carousel of album cards */}
       <section>
         <SectionHeader title="New drops" />
         <div className="mt-3 -mx-5 flex gap-3 overflow-x-auto scrollbar-none px-5 pb-2">
           {albums.slice(0, 18).map((a) => (
             <AlbumCard key={`drop-${a.id}`} album={a} size={170} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <SectionHeader
-          title="More to play"
-          action={
-            allSongs.length > 12 && (
-              <button
-                onClick={() => setSongsExpanded((v) => !v)}
-                className="text-sm font-semibold text-accent"
-              >
-                {songsExpanded ? "Show less" : "See more"}
-              </button>
-            )
-          }
-        />
-        <div className="mt-3 space-y-1">
-          {more.map((s) => (
-            <SongRow key={s.id} song={s} queue={allSongs} />
           ))}
         </div>
       </section>
