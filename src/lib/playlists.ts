@@ -69,3 +69,20 @@ export function removeFromPlaylist(playlistId: string, trackId: string) {
   p.tracks = p.tracks.filter((t) => t.id !== trackId);
   save(pls);
 }
+
+export const DOWNLOADS_PLAYLIST_ID = "yvl_downloads_v1";
+
+export function ensureDownloadsPlaylist(): Playlist {
+  const pls = getPlaylists();
+  const existing = pls.find((p) => p.id === DOWNLOADS_PLAYLIST_ID);
+  if (existing) return existing;
+  const pl: Playlist = {
+    id: DOWNLOADS_PLAYLIST_ID,
+    name: "Downloads",
+    createdAt: Date.now(),
+    tracks: [],
+  };
+  pls.unshift(pl);
+  save(pls);
+  return pl;
+}
