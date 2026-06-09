@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Search, Library, Settings } from "lucide-react";
+import { Home, Search, Library, Settings, Compass } from "lucide-react";
 import { type ReactNode } from "react";
 import { MiniPlayer } from "./MiniPlayer";
 import { FullPlayer } from "./FullPlayer";
@@ -7,6 +7,7 @@ import { usePlayer } from "@/lib/player";
 
 const NAV = [
   { to: "/",         label: "Home",     icon: Home },
+  { to: "/explore",  label: "Explore",  icon: Compass },
   { to: "/search",   label: "Search",   icon: Search },
   { to: "/library",  label: "Library",  icon: Library },
   { to: "/settings", label: "Settings", icon: Settings },
