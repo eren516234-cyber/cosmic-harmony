@@ -17,11 +17,13 @@ type RouteKey = "home" | "search" | "library" | "settings" | "album" | "artist" 
 
 type ThemeState = {
   rainbow: boolean;
+  aurora: boolean;           // animated multi-color aurora background
   paint: boolean;            // custom colour applied to whole app
   perScreen: boolean;        // each route gets a unique colour
   accent: string;            // currently active hex
   baseAccent: string;        // user-picked hex (custom-colour pref)
   setRainbow: (v: boolean) => void;
+  setAurora: (v: boolean) => void;
   setPaint: (v: boolean) => void;
   setPerScreen: (v: boolean) => void;
   setAccent: (hex: string) => void;
