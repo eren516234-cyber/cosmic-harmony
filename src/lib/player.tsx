@@ -6,7 +6,7 @@ type PlayerState = {
   index: number;
   current?: Track;
   isPlaying: boolean;
-  position: number;
+  position: number;   // seconds
   duration: number;
   expanded: boolean;
   quality: string;
@@ -20,20 +20,6 @@ type PlayerState = {
 };
 
 const Ctx = createContext<PlayerState | null>(null);
-
-function showNowPlayingNotification(track: Track) {
-  if (typeof window === "undefined") return;
-  if (!("Notification" in window)) return;
-  if (Notification.permission !== "granted") return;
-  try {
-    new Notification("♫ Now Playing", {
-      body: `${track.title} — ${track.artist}`,
-      icon: track.cover,
-      silent: true,
-      tag: "now-playing",
-    });
-  } catch {}
-}
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -50,6 +36,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { try { localStorage.setItem("yvl.quality", quality); } catch {} }, [quality]);
 
+  // Lazily create the audio element on the client
   useEffect(() => {
     const el = new Audio();
     el.preload = "metadata";
@@ -88,11 +75,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
     const el = audioRef.current!;
     el.src = stream!;
-    try {
-      await el.play();
-      setIsPlaying(true);
-      showNowPlayingNotification(track);
-    } catch { setIsPlaying(false); }
+    try { await el.play(); setIsPlaying(true); } catch { setIsPlaying(false); }
   }
 
   async function play(tracks: Track[], startIndex = 0) {

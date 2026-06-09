@@ -1,20 +1,41 @@
 import { useCallback, useEffect, useState } from "react";
 
-const KEY = "yvl.likes.v1";
+const KEY = "yvl.likes.v2";
+const LEGACY = "yvl.likes.v1";
 
-function read(): Set<string> {
-  if (typeof window === "undefined") return new Set();
-  try { return new Set(JSON.parse(localStorage.getItem(KEY) ?? "[]")); } catch { return new Set(); }
+export type LikedTrack = {
+  id: string;
+  title: string;
+  artist: string;
+  cover?: string;
+  likedAt: number;
+};
+
+function read(): LikedTrack[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw) as LikedTrack[];
+    // migrate from v1 (ids only)
+    const old = JSON.parse(localStorage.getItem(LEGACY) ?? "[]") as string[];
+    return old.map((id) => ({ id, title: id, artist: "—", likedAt: Date.now() }));
+  } catch {
+    return [];
+  }
 }
-function write(s: Set<string>) {
-  try { localStorage.setItem(KEY, JSON.stringify([...s])); } catch {}
+function write(list: LikedTrack[]) {
+  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {}
   window.dispatchEvent(new Event("yvl:likes"));
 }
 
-export function useLike(id?: string) {
-  const [set, setSet] = useState<Set<string>>(() => read());
+export function getLiked(): LikedTrack[] {
+  return read();
+}
+
+export function useLike(track?: { id: string; title: string; artist: string; cover?: string }) {
+  const [list, setList] = useState<LikedTrack[]>(() => read());
   useEffect(() => {
-    const sync = () => setSet(read());
+    const sync = () => setList(read());
     window.addEventListener("yvl:likes", sync);
     window.addEventListener("storage", sync);
     return () => {
@@ -22,12 +43,14 @@ export function useLike(id?: string) {
       window.removeEventListener("storage", sync);
     };
   }, []);
-  const liked = id ? set.has(id) : false;
+  const liked = !!(track && list.some((t) => t.id === track.id));
   const toggle = useCallback(() => {
-    if (!id) return;
-    const next = new Set(set);
-    if (next.has(id)) next.delete(id); else next.add(id);
+    if (!track) return;
+    const exists = list.some((t) => t.id === track.id);
+    const next = exists
+      ? list.filter((t) => t.id !== track.id)
+      : [{ ...track, likedAt: Date.now() }, ...list];
     write(next);
-  }, [id, set]);
-  return { liked, toggle, all: set };
+  }, [track, list]);
+  return { liked, toggle, all: list };
 }

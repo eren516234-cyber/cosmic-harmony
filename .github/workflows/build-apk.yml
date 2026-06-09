@@ -28,30 +28,23 @@ jobs:
       - name: Build web app (SPA)
         run: bun run build:cap
 
-      - name: Rename entry to index.html
-        run: |
-          if [ -f dist-cap/index.cap.html ]; then
-            mv dist-cap/index.cap.html dist-cap/index.html
-          fi
-          ls dist-cap/
+      - name: Add Android platform
+        run: bunx cap add android
 
-      - name: Setup JDK 21
+      - name: Sync Capacitor assets
+        run: bunx cap sync android
+
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "17"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Accept SDK licenses
         run: yes | sdkmanager --licenses || true
-
-      - name: Add Android platform
-        run: bunx cap add android
-
-      - name: Sync Capacitor assets
-        run: bunx cap sync android
 
       - name: Make Gradle executable
         working-directory: android
