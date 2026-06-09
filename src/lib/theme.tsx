@@ -47,6 +47,7 @@ const LS_KEY = "yvl.theme.v1";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [rainbow, setRainbow] = useState(false);
+  const [aurora, setAurora] = useState(false);
   const [paint, setPaint] = useState(false);
   const [perScreen, setPerScreen] = useState(false);
   const [baseAccent, setBaseAccent] = useState(DEFAULT_HEX);
@@ -59,6 +60,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (!raw) return;
       const s = JSON.parse(raw);
       setRainbow(!!s.rainbow);
+      setAurora(!!s.aurora);
       setPaint(!!s.paint);
       setPerScreen(!!s.perScreen);
       if (typeof s.baseAccent === "string") setBaseAccent(s.baseAccent);
@@ -68,12 +70,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Persist
   useEffect(() => {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ rainbow, paint, perScreen, baseAccent }));
+      localStorage.setItem(LS_KEY, JSON.stringify({ rainbow, aurora, paint, perScreen, baseAccent }));
     } catch {}
-  }, [rainbow, paint, perScreen, baseAccent]);
+  }, [rainbow, aurora, paint, perScreen, baseAccent]);
 
   const accent = useMemo(() => {
-    if (rainbow) return baseAccent; // animation drives the hex; keep value for fallbacks
+    if (rainbow) return baseAccent;
     if (perScreen) return PER_SCREEN_MAP[routeKey];
     return baseAccent;
   }, [rainbow, perScreen, baseAccent, routeKey]);
@@ -83,18 +85,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.style.setProperty("--accent-hex", accent);
     root.dataset.rainbow = rainbow ? "on" : "off";
+    root.dataset.aurora = aurora ? "on" : "off";
     const painted = paint || perScreen || rainbow;
     root.dataset.paint = painted ? "on" : "off";
-  }, [accent, rainbow, paint, perScreen]);
+  }, [accent, rainbow, aurora, paint, perScreen]);
 
   const value: ThemeState = {
-    rainbow, paint, perScreen,
+    rainbow, aurora, paint, perScreen,
     accent, baseAccent,
     setRainbow,
+    setAurora,
     setPaint,
     setPerScreen,
     setAccent: setBaseAccent,
-    reset: () => { setRainbow(false); setPaint(false); setPerScreen(false); setBaseAccent(DEFAULT_HEX); },
+    reset: () => { setRainbow(false); setAurora(false); setPaint(false); setPerScreen(false); setBaseAccent(DEFAULT_HEX); },
     registerRoute: setRouteKey,
   };
 
