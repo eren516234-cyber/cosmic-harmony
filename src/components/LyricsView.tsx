@@ -108,7 +108,7 @@ export function LyricsView({ lyrics, position, duration, mode, loading, accent, 
   return (
     <ScrollFrame active={activeLine} darken={cinematic}>
       {mode === "ios" && <IOSLines synced={synced} active={activeLine} onSeek={onSeek} />}
-      {mode === "word" && <WordLines synced={synced} active={activeLine} progress={lineProgress} onSeek={onSeek} accent={accent} />}
+      {mode === "word" && <WordLines synced={synced} active={activeLine} progress={lineProgress} onSeek={onSeek} accent={accent} smoothPos={smoothPos} />}
       {mode === "karaoke" && <KaraokeLines synced={synced} active={activeLine} progress={lineProgress} onSeek={onSeek} accent={accent} />}
       {mode === "wave" && <WaveLines synced={synced} active={activeLine} progress={lineProgress} onSeek={onSeek} accent={accent} />}
       {mode === "glow" && <GlowLines synced={synced} active={activeLine} progress={lineProgress} onSeek={onSeek} accent={accent} />}
@@ -217,13 +217,40 @@ function IOSLines({ synced, active, onSeek }: { synced: LineProps["synced"]; act
   );
 }
 
-/* ---------- 2. Word-by-word ---------- */
-function WordLines({ synced, active, progress, onSeek, accent }: LineProps) {
+/* ---------- 2. Word-by-word (Enhanced LRC aware) ---------- */
+function WordLines({
+  synced, active, progress, onSeek, accent, smoothPos,
+}: LineProps & { smoothPos: number }) {
   return (
     <>
       {synced.map((l, i) => {
-        const words = (l.text || "♪").split(/\s+/).filter(Boolean);
-        const reveal = i === active ? progress * words.length : i < active ? words.length : 0;
+        const hasTimedWords = !!l.words && l.words.length > 0;
+        const words = hasTimedWords
+          ? l.words!
+          : (l.text || "♪").split(/\s+/).filter(Boolean).map((t) => ({ time: l.time, text: t }));
+        // Reveal count
+        let reveal: number;
+        if (hasTimedWords) {
+          if (i < active) reveal = words.length;
+          else if (i > active) reveal = 0;
+          else {
+            // count words whose time <= smoothPos, plus partial interp for the current word
+            let n = 0;
+            for (let k = 0; k < words.length; k++) if (words[k].time <= smoothPos) n = k + 1;
+            // partial highlight on the next word for fluid feel
+            const cur = words[n - 1];
+            const nxt = words[n];
+            if (cur && nxt) {
+              const span = Math.max(nxt.time - cur.time, 0.12);
+              const frac = Math.min(1, Math.max(0, (smoothPos - cur.time) / span));
+              reveal = n - 1 + frac;
+            } else {
+              reveal = n;
+            }
+          }
+        } else {
+          reveal = i === active ? progress * words.length : i < active ? words.length : 0;
+        }
         return (
           <p
             key={i}
@@ -236,8 +263,9 @@ function WordLines({ synced, active, progress, onSeek, accent }: LineProps) {
               return (
                 <span
                   key={j}
-                  className="mr-2 inline-block transition-all duration-200"
+                  className="mr-2 inline-block transition-all duration-150"
                   style={{
+
                     color: lit ? accent ?? "#fff" : "rgba(255,255,255,0.55)",
                     textShadow: lit && i === active ? `0 0 18px ${accent ?? "rgba(255,255,255,0.6)"}` : "none",
                     transform: lit && i === active ? "translateY(-2px)" : "none",
