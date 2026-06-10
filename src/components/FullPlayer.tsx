@@ -25,7 +25,14 @@ export function FullPlayer() {
     if (typeof window === "undefined") return "ios";
     return (localStorage.getItem(MODE_KEY) as LyricsMode) || "ios";
   });
+  const [offset, setOffset] = useState<number>(() => {
+    if (typeof window === "undefined") return -0.15;
+    const raw = localStorage.getItem("yvl.lyrics-offset");
+    return raw != null ? parseFloat(raw) : -0.15;
+  });
   useEffect(() => { try { localStorage.setItem(MODE_KEY, mode); } catch {} }, [mode]);
+  useEffect(() => { try { localStorage.setItem("yvl.lyrics-offset", String(offset)); } catch {} }, [offset]);
+
 
   useEffect(() => {
     if (!current) return;
@@ -106,8 +113,10 @@ export function FullPlayer() {
                   duration={duration}
                   mode={mode}
                   loading={loadingL}
+                  offset={offset}
                   onSeek={seek}
                 />
+
               </div>
             )}
           </div>
