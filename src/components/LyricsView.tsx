@@ -31,8 +31,10 @@ type Props = {
   mode: LyricsMode;
   loading: boolean;
   accent?: string;
+  offset?: number;
   onSeek?: (t: number) => void;
 };
+
 
 /**
  * Smooth-interpolated playback position.
@@ -65,8 +67,10 @@ function useSmoothPosition(position: number) {
   return smooth;
 }
 
-export function LyricsView({ lyrics, position, duration, mode, loading, accent, onSeek }: Props) {
-  const smoothPos = useSmoothPosition(position);
+export function LyricsView({ lyrics, position, duration, mode, loading, accent, offset = 0, onSeek }: Props) {
+  const rawSmooth = useSmoothPosition(position);
+  const smoothPos = rawSmooth + offset;
+
 
   const synced = lyrics?.synced ?? [];
   const { activeLine, lineProgress } = useMemo(() => {
