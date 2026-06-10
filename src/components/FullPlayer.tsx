@@ -54,6 +54,8 @@ export function FullPlayer() {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background">
+      {/* Aurora layer inside player so theme reaches full-screen view too */}
+      <div className="pointer-events-none absolute inset-0 splash-aurora opacity-40 [html[data-aurora=off]_&]:hidden" />
       {current.cover && (
         <div className="pointer-events-none absolute inset-0">
           <img
@@ -65,6 +67,7 @@ export function FullPlayer() {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
         </div>
       )}
+
 
       <div className="relative mx-auto flex w-full max-w-[440px] flex-1 flex-col px-6 pb-8 pt-6 md:max-w-[560px]">
         <header className="flex items-center justify-between">
