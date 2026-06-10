@@ -6,12 +6,16 @@ import { fetchLyrics, type Lyrics } from "@/lib/lrclib";
 import { useLike } from "@/lib/likes";
 import { LyricsView, LYRICS_MODES, type LyricsMode } from "./LyricsView";
 import { addToPlaylist, createPlaylist, ensureDownloadsPlaylist, getPlaylists } from "@/lib/playlists";
+import { useTheme } from "@/lib/theme";
+
 
 const MODE_KEY = "yvl.lyrics-mode";
 const MODES = LYRICS_MODES;
 
 export function FullPlayer() {
   const { current, expanded, expand, isPlaying, toggle, next, prev, position, duration, seek, queue, play } = usePlayer();
+  const theme = useTheme();
+
   const [showLyrics, setShowLyrics] = useState(false);
   const [lyrics, setLyrics] = useState<Lyrics>(null);
   const [loadingL, setLoadingL] = useState(false);
@@ -55,7 +59,10 @@ export function FullPlayer() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background">
       {/* Aurora layer inside player so theme reaches full-screen view too */}
-      <div className="pointer-events-none absolute inset-0 splash-aurora opacity-40 [html[data-aurora=off]_&]:hidden" />
+      {theme.aurora && (
+        <div className="pointer-events-none absolute inset-0 splash-aurora opacity-50" />
+      )}
+
       {current.cover && (
         <div className="pointer-events-none absolute inset-0">
           <img
