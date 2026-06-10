@@ -181,12 +181,13 @@ function ScrollFrame({ active, darken, children }: { active: number; darken?: bo
 }
 
 type LineProps = {
-  synced: { time: number; text: string }[];
+  synced: import("@/lib/lrclib").LyricsLine[];
   active: number;
   progress: number;
   onSeek?: (t: number) => void;
   accent?: string;
 };
+
 
 /* ---------- 1. iOS line ---------- */
 function IOSLines({ synced, active, onSeek }: { synced: LineProps["synced"]; active: number; onSeek?: (t: number) => void }) {
