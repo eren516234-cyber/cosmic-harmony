@@ -122,20 +122,43 @@ export function FullPlayer() {
           </div>
 
           {showLyrics && (
-            <div className="mx-auto mt-2 flex max-w-full gap-1 overflow-x-auto rounded-full bg-secondary/70 p-1 backdrop-blur scrollbar-none">
-              {MODES.map((m) => (
+            <>
+              <div className="mx-auto mt-2 flex max-w-full gap-1 overflow-x-auto rounded-full bg-secondary/70 p-1 backdrop-blur scrollbar-none">
+                {MODES.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setMode(m.id)}
+                    className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
+                      mode === m.id ? "bg-accent text-accent-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mx-auto mt-2 flex items-center justify-center gap-2 text-[11px]">
+                <span className="text-muted-foreground">Sync</span>
                 <button
-                  key={m.id}
-                  onClick={() => setMode(m.id)}
-                  className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
-                    mode === m.id ? "bg-accent text-accent-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
+                  onClick={() => setOffset((o) => Math.round((o - 0.1) * 100) / 100)}
+                  className="rounded-full bg-secondary px-2.5 py-1 font-bold"
+                  aria-label="Lyrics earlier"
+                >−0.1s</button>
+                <span className="min-w-[3.5rem] text-center font-mono font-semibold">
+                  {offset >= 0 ? "+" : ""}{offset.toFixed(2)}s
+                </span>
+                <button
+                  onClick={() => setOffset((o) => Math.round((o + 0.1) * 100) / 100)}
+                  className="rounded-full bg-secondary px-2.5 py-1 font-bold"
+                  aria-label="Lyrics later"
+                >+0.1s</button>
+                <button
+                  onClick={() => setOffset(0)}
+                  className="ml-1 rounded-full bg-secondary px-2.5 py-1 text-muted-foreground"
+                >Reset</button>
+              </div>
+            </>
           )}
+
         </div>
 
         {/* Title + actions row — always present, never hidden */}
