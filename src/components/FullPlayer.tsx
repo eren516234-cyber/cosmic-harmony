@@ -53,7 +53,7 @@ export function FullPlayer() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: "var(--background)" }}>
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-background">
       {current.cover && (
         <div className="pointer-events-none absolute inset-0">
           <img
