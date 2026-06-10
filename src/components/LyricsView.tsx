@@ -272,7 +272,7 @@ function WordLines({
                     transform: lit && i === active ? "translateY(-2px)" : "none",
                   }}
                 >
-                  {w}
+                  {w.text}
                 </span>
               );
             })}
